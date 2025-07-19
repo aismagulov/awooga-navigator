@@ -1,0 +1,49 @@
+#import-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+}
+
+#import-modal .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+#import-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px 32px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+    min-width: 220px;
+    text-align: center;
+}
+
+#import-modal .modal-btn {
+    margin: 0 10px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#import-modal .modal-replace {
+    background: #1976d2;
+    color: #fff;
+}
+
+#import-modal .modal-append {
+    background: #388e3c;
+    color: #fff;
+}

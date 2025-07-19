@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Extension Options</title>
+  <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="modal.css">
+</head>
+<body>
+  <h2>Regex Table</h2>
+  <table id="regexTable">
+    <thead>
+      <tr>
+        <th>Pattern</th>
+        <th>URL template</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" /></td>
+        <td><input type="text" /></td>
+        <td><button class="delete-row">X</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <div>
+    <button id="addRow">Add row</button>
+    <button id="save">Save</button>
+    <button id="import">Import</button>
+    <input type="file" id="importFile" accept=".csv" style="display:none" />
+    <button id="export">Export</button>
+  </div>
+  <div id="message"></div>
+  <script src="modal.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
