@@ -1,17 +1,19 @@
 const table = document.getElementById('regexTable').getElementsByTagName('tbody')[0];
 
-function addRow(key = '', value = '', name = '') {
+function addRow(host = '', key = '', value = '', name = '') {
   const row = table.insertRow();
   let cell1 = row.insertCell(0);
   let cell2 = row.insertCell(1);
   let cell3 = row.insertCell(2);
   let cell4 = row.insertCell(3);
-  cell1.innerHTML = `<input type="text" value="${key.replace(/"/g, '&quot;')}" />`;
-  cell2.innerHTML = `<input type="text" value="${value.replace(/"/g, '&quot;')}" />`;
-  cell3.innerHTML = `<input type="text" value="${name.replace(/"/g, '&quot;')}" placeholder="Submenu name" />`;
-  cell4.innerHTML = '<button class="delete-row">X</button>';
+  let cell5 = row.insertCell(4);
+  cell1.innerHTML = `<input type="text" value="${host.replace(/"/g, '&quot;')}" />`;
+  cell2.innerHTML = `<input type="text" value="${key.replace(/"/g, '&quot;')}" />`;
+  cell3.innerHTML = `<input type="text" value="${value.replace(/"/g, '&quot;')}" />`;
+  cell4.innerHTML = `<input type="text" value="${name.replace(/"/g, '&quot;')}" placeholder="Submenu name" />`;
+  cell5.innerHTML = '<button class="delete-row">X</button>';
   // Add delete functionality
-  const deleteBtn = cell4.querySelector('.delete-row');
+  const deleteBtn = cell5.querySelector('.delete-row');
   deleteBtn.onclick = () => {
     row.remove();
   };
@@ -38,7 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
       addRow();
     } else {
       for (const entry of arr) {
-        addRow(entry.key, entry.value, entry.name || '');
+        addRow(entry.host || '', entry.key, entry.value, entry.name || '');
       }
     }
   });
@@ -49,9 +51,10 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('save').onclick = () => {
   const arr = [];
   for (const row of table.rows) {
-    const key = row.cells[0].querySelector('input').value.trim();
-    const value = row.cells[1].querySelector('input').value.trim();
-    const name = row.cells[2].querySelector('input').value.trim();
+    const host = row.cells[0].querySelector('input').value.trim();
+    const key = row.cells[1].querySelector('input').value.trim();
+    const value = row.cells[2].querySelector('input').value.trim();
+    const name = row.cells[3].querySelector('input').value.trim();
     if (key) {
       // Validate key as regex with /pattern/flags format
       const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
@@ -66,7 +69,7 @@ document.getElementById('save').onclick = () => {
         alert(`Invalid regex: ${key}`);
         return;
       }
-      arr.push({ key, value, name });
+      arr.push({ host, key, value, name });
     }
   }
   chrome.storage.sync.set({ regexMap: arr }, () => {

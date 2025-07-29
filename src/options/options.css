@@ -15,14 +15,24 @@ input[type="text"] {
     width: 95%;
 }
 
-th:first-child, td:first-child {
-    width: 25%;
+#regexTable {
+  table-layout: fixed;
+  width: 100%;
 }
-th:nth-child(2), td:nth-child(2) {
-    width: 72%;
+#regexTable th:nth-child(1), #regexTable td:nth-child(1) {
+  width: 100px;
 }
-th:nth-child(3), td:nth-child(3) {
-    width: 3%;
+#regexTable th:nth-child(2), #regexTable td:nth-child(2) {
+  width: 100px;
+}
+#regexTable th:nth-child(3), #regexTable td:nth-child(3) {
+  width: 100%;
+}
+#regexTable th:nth-child(4), #regexTable td:nth-child(4) {
+  width: 200px;
+}
+#regexTable th:nth-child(5), #regexTable td:nth-child(5) {
+  width: 40px;
 }
 
 button {
