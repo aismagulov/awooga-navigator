@@ -57,8 +57,13 @@ function applyPattern(pattern, urlTemplate) {
             // Check if next sibling is already an injected link with the same href
             let url = urlTemplate;
             if (result[1] !== undefined) {
-                url = urlTemplate.replace(/%VAL%/g, result[1]);
+                if (url.includes('*')) {
+                    url = url.replace('*', result[1]);
+                } else {
+                    url += result[1];
+                }
             }
+            console.log('Matched URL:', url, matchedText);
             let alreadyInjected = false;
             if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute(AWOOGA_ATTR)) {
                 if (parent.nextSibling.href === url) {
