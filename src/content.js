@@ -1,5 +1,3 @@
-const AWOOGA_ATTR = 'data-awooga-navigator-injected';
-
 // document.addEventListener('selectionchange', () => {
 //     const selectedText = window.getSelection().toString();
 //     const pageUrl = window.location.href;
@@ -15,7 +13,9 @@ const AWOOGA_ATTR = 'data-awooga-navigator-injected';
 //     });
 // });
 
-function applyPattern(pattern, urlTemplate) {
+function applyPattern(entry) {
+    const pattern = entry.key;
+    const urlTemplate = entry.value;
     console.log('Applying pattern:', { pattern, urlTemplate });
     // Validate pattern as /pattern/flags
     const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
@@ -39,7 +39,7 @@ function applyPattern(pattern, urlTemplate) {
         let result, lastIndex = 0, parent = node.parentNode;
         if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') continue;
         // Don't process if previous sibling is already an injected link for this pattern and urlTemplate
-        if (parent.previousSibling && parent.previousSibling.nodeType === 1 && parent.previousSibling.hasAttribute && parent.previousSibling.hasAttribute(AWOOGA_ATTR)) {
+        if (parent.previousSibling && parent.previousSibling.nodeType === 1 && parent.previousSibling.hasAttribute && parent.previousSibling.hasAttribute('data-awooga-injected')) {
             continue;
         }
         let frag = document.createDocumentFragment();
@@ -59,13 +59,14 @@ function applyPattern(pattern, urlTemplate) {
             if (result[1] !== undefined) {
                 if (url.includes('*')) {
                     url = url.replace('*', result[1]);
+                } else if (url.includes('%VAL%')) {
+                    url = url.replace(/%VAL%/g, result[1]);
                 } else {
                     url += result[1];
                 }
             }
-            console.log('Matched URL:', url, matchedText);
             let alreadyInjected = false;
-            if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute(AWOOGA_ATTR)) {
+            if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute('data-awooga-injected')) {
                 if (parent.nextSibling.href === url) {
                     alreadyInjected = true;
                 }
@@ -73,8 +74,8 @@ function applyPattern(pattern, urlTemplate) {
             if (!alreadyInjected) {
                 const a = document.createElement('a');
                 a.href = url;
-                a.textContent = '🔗';
-                a.setAttribute(AWOOGA_ATTR, '1');
+                a.textContent = (entry.name || '🔗') + '↗️';
+                a.setAttribute('data-awooga-injected', '1');
                 a.target = '_blank';
                 a.style.background = '#ffff99';
                 a.style.marginLeft = '2px';
@@ -93,48 +94,28 @@ function applyPattern(pattern, urlTemplate) {
     }
 }
 
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('Content script received message:', message);
-    if (message.type === 'applyAwooga') {
-        runAwooga();
-    } else if (message.type === 'cleanupAwooga') {
-        cleanupAwooga();
-    }
-});
-
-function runAwooga() {
-    cleanupAwooga();
-    chrome.storage.sync.get('regexMap', (data) => {
-        const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
-        const pageUrl = window.location.href;
-        arr.forEach(entry => {
-            const host = entry.host || '';
-            let proceed = false;
-            if (!host) {
-                proceed = true;
-            } else {
-                // Validate host as regex in /pattern/flags format
-                const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
-                const match = host.match(regexFormat);
-                if (match) {
-                    try {
-                        const re = new RegExp(match[1], match[2]);
-                        if (re.test(pageUrl)) {
-                            proceed = true;
-                        }
-                    } catch (e) { /* invalid regex, do nothing */ }
-                }
+chrome.storage.sync.get('regexMap', (data) => {
+    const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
+    const pageUrl = window.location.href;
+    arr.forEach(entry => {
+        let proceed = false;
+        if (!entry.host) {
+            proceed = true;
+        } else {
+            // Validate host as regex in /pattern/flags format
+            const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
+            const match = entry.host.match(regexFormat);
+            if (match) {
+                try {
+                    const re = new RegExp(match[1], match[2]);
+                    if (re.test(pageUrl)) {
+                        proceed = true;
+                    }
+                } catch (e) { /* invalid regex, do nothing */ }
             }
-            if (proceed) {
-                applyPattern(entry.key, entry.value);
-            }
-        });
+        }
+        if (proceed) {
+            applyPattern(entry);
+        }
     });
-}
-
-function cleanupAwooga() {
-    document.querySelectorAll('a[' + AWOOGA_ATTR + ']').forEach(a => a.remove());
-}
-
-runAwooga();
+});

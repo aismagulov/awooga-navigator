@@ -1,0 +1,35 @@
+.emoji-picker-popup {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.emoji-section-title {
+    font-weight: bold;
+    font-size: 1em;
+    margin: 8px 0 2px 0;
+    padding: 2px 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 2px;
+}
+
+.emoji-btn {
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    aspect-ratio: 1/1;
+    margin: 0;
+    padding: 4px;
+}

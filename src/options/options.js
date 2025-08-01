@@ -2,20 +2,34 @@ const table = document.getElementById('regexTable').getElementsByTagName('tbody'
 
 function addRow(host = '', key = '', value = '', name = '') {
   const row = table.insertRow();
-  let cell1 = row.insertCell(0);
-  let cell2 = row.insertCell(1);
-  let cell3 = row.insertCell(2);
-  let cell4 = row.insertCell(3);
-  let cell5 = row.insertCell(4);
-  cell1.innerHTML = `<input type="text" value="${host.replace(/"/g, '&quot;')}" />`;
-  cell2.innerHTML = `<input type="text" value="${key.replace(/"/g, '&quot;')}" />`;
-  cell3.innerHTML = `<input type="text" value="${value.replace(/"/g, '&quot;')}" />`;
-  cell4.innerHTML = `<input type="text" value="${name.replace(/"/g, '&quot;')}" placeholder="Submenu name" />`;
-  cell5.innerHTML = '<button class="delete-row">X</button>';
+  let cell = row.insertCell(0);
+  cell.className = 'regex-row-cell';
+  cell.innerHTML = `
+    <div class="input-label">Host URL:</div>
+    <input type="text" class="monospace-input" value="${host.replace(/"/g, '&quot;')}" placeholder="Host URL" />
+    <div class="input-label">Pattern:</div>
+    <input type="text" class="monospace-input" value="${key.replace(/"/g, '&quot;')}" placeholder="Pattern" />
+    <div class="input-label">URL template:</div>
+    <input type="text" class="monospace-input" value="${value.replace(/"/g, '&quot;')}" placeholder="URL template" />
+    <div class="input-label">Name:</div>
+    <div class="name-row">
+      <input type="text" class="name-input" value="${name.replace(/"/g, '&quot;')}" placeholder="Name" />
+      <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
+      <div class="emoji-picker-popup"></div>
+    </div>
+    <button class="delete-row">X</button>
+  `;
   // Add delete functionality
-  const deleteBtn = cell5.querySelector('.delete-row');
+  const deleteBtn = cell.querySelector('.delete-row');
   deleteBtn.onclick = () => {
     row.remove();
+  };
+
+  // Emoji picker logic
+  const emojiBtn = cell.querySelector('.emoji-picker-btn');
+  const nameInput = cell.querySelector('.name-input');
+  emojiBtn.onclick = (e) => {
+    window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
   };
 }
 
@@ -51,10 +65,11 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('save').onclick = () => {
   const arr = [];
   for (const row of table.rows) {
-    const host = row.cells[0].querySelector('input').value.trim();
-    const key = row.cells[1].querySelector('input').value.trim();
-    const value = row.cells[2].querySelector('input').value.trim();
-    const name = row.cells[3].querySelector('input').value.trim();
+    const cell = row.cells[0];
+    const host = cell.querySelector('input.monospace-input[placeholder="Host URL"]')?.value.trim() || '';
+    const key = cell.querySelector('input.monospace-input[placeholder="Pattern"]')?.value.trim() || '';
+    const value = cell.querySelector('input.monospace-input[placeholder="URL template"]')?.value.trim() || '';
+    const name = cell.querySelector('input.name-input')?.value.trim() || '';
     if (key) {
       // Validate key as regex with /pattern/flags format
       const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
