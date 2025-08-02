@@ -77,7 +77,6 @@ function applyPattern(entry) {
                 a.textContent = (entry.name || '🔗') + '↗️';
                 a.setAttribute('data-awooga-injected', '1');
                 a.target = '_blank';
-                a.style.background = '#ffff99';
                 a.style.marginLeft = '2px';
                 frag.appendChild(a);
             }

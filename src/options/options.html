@@ -9,27 +9,10 @@
   <script src="emoji-picker.js"></script>
 </head>
 <body>
-  <h2>Regex Table</h2>
-  <table id="regexTable">
-    <thead>
-      <tr>
-        <th>Entry</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <input type="text" placeholder="Host URL" />
-          <input type="text" placeholder="Pattern" />
-          <input type="text" placeholder="URL template" />
-          <input type="text" placeholder="Name" />
-          <button class="delete-row">X</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <h2>Regex Map</h2>
+  <div id="hostContainers"></div>
   <div>
-    <button id="addRow">Add row</button>
+    <button id="addHost">Add Host URL</button>
     <button id="save">Save</button>
     <button id="import">Import</button>
     <input type="file" id="importFile" accept=".csv" style="display:none" />

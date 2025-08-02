@@ -1,92 +1,169 @@
-const table = document.getElementById('regexTable').getElementsByTagName('tbody')[0];
+const hostContainers = document.getElementById('hostContainers');
 
-function addRow(host = '', key = '', value = '', name = '') {
-  const row = table.insertRow();
-  let cell = row.insertCell(0);
-  cell.className = 'regex-row-cell';
-  cell.innerHTML = `
-    <div class="input-label">Host URL:</div>
-    <input type="text" class="monospace-input" value="${host.replace(/"/g, '&quot;')}" placeholder="Host URL" />
-    <div class="input-label">Pattern:</div>
-    <input type="text" class="monospace-input" value="${key.replace(/"/g, '&quot;')}" placeholder="Pattern" />
-    <div class="input-label">URL template:</div>
-    <input type="text" class="monospace-input" value="${value.replace(/"/g, '&quot;')}" placeholder="URL template" />
-    <div class="input-label">Name:</div>
-    <div class="name-row">
-      <input type="text" class="name-input" value="${name.replace(/"/g, '&quot;')}" placeholder="Name" />
-      <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
-      <div class="emoji-picker-popup"></div>
-    </div>
-    <button class="delete-row">X</button>
-  `;
-  // Add delete functionality
-  const deleteBtn = cell.querySelector('.delete-row');
-  deleteBtn.onclick = () => {
-    row.remove();
-  };
-
-  // Emoji picker logic
-  const emojiBtn = cell.querySelector('.emoji-picker-btn');
-  const nameInput = cell.querySelector('.name-input');
-  emojiBtn.onclick = (e) => {
-    window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
-  };
+function renderHosts(regexMap) {
+  hostContainers.innerHTML = '';
+  // Group by host, but ensure all entries are rendered
+  const grouped = {};
+  regexMap.forEach(entry => {
+    const host = entry.host || '';
+    if (!grouped[host]) grouped[host] = [];
+    grouped[host].push(entry);
+  });
+  Object.entries(grouped).forEach(([host, entries]) => {
+    const hostDiv = document.createElement('div');
+    hostDiv.className = 'host-container';
+    hostDiv.innerHTML = `
+      <div class="host-header" style="position:relative;">
+        <span class="input-label">Host Name:</span>
+        <input type="text" class="host-input monospace-input" value="${host}" placeholder="Host URL" />
+        <button type="button" class="delete-host" title="Delete Host">X</button>
+      </div>
+      <div class="patterns-list"></div>
+      <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
+    `;
+    const patternsList = hostDiv.querySelector('.patterns-list');
+    // Render all patterns for this host
+    entries.forEach(entry => {
+      console.log('Rendering entry:', entry);
+      const escape = str => (str || '').replace(/"/g, '&quot;');
+      const row = document.createElement('div');
+      row.className = 'pattern-row';
+      row.innerHTML = `
+        <div class="input-label">Pattern:</div>
+        <input type="text" class="monospace-input pattern-input" value="${escape(entry.key)}" placeholder="Pattern" />
+        <div class="input-label">URL Template:</div>
+        <input type="text" class="monospace-input url-input" value="${escape(entry.value)}" placeholder="URL Template" />
+        <div class="input-label">Link Name:</div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input type="text" class="name-input" value="${escape(entry.name)}" placeholder="Link Name" />
+          <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
+        </div>
+        <button type="button" class="delete-pattern" title="Delete Pattern">X</button>
+      `;
+      // Emoji picker for name
+      const nameInput = row.querySelector('.name-input');
+      const emojiBtn = row.querySelector('.emoji-picker-btn');
+      emojiBtn.onclick = () => {
+        window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
+      };
+      // Delete pattern row
+      row.querySelector('.delete-pattern').onclick = () => {
+        row.remove();
+      };
+      patternsList.appendChild(row);
+    });
+    // Add pattern row
+    hostDiv.querySelector('.add-pattern').onclick = () => {
+      const row = document.createElement('div');
+      row.className = 'pattern-row';
+      row.innerHTML = `
+        <div class="input-label">Pattern:</div>
+        <input type="text" class="pattern-input" placeholder="Pattern" />
+        <div class="input-label">URL Template:</div>
+        <input type="text" class="url-input" placeholder="URL Template" />
+        <div class="input-label">Link Name:</div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input type="text" class="name-input" placeholder="Link Name" />
+          <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
+        </div>
+        <button type="button" class="delete-pattern">X</button>
+      `;
+      const nameInput = row.querySelector('.name-input');
+      const emojiBtn = row.querySelector('.emoji-picker-btn');
+      emojiBtn.onclick = () => {
+        window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
+      };
+      row.querySelector('.delete-pattern').onclick = () => {
+        row.remove();
+      };
+      patternsList.appendChild(row);
+    };
+    // Delete host
+    hostDiv.querySelector('.delete-host').onclick = () => {
+      hostDiv.remove();
+    };
+    hostContainers.appendChild(hostDiv);
+  });
 }
 
-document.getElementById('addRow').onclick = () => {
-  addRow();
-};
+// Add Host button
+function addHost() {
+  const hostDiv = document.createElement('div');
+  hostDiv.className = 'host-container';
+  hostDiv.innerHTML = `
+    <div class="host-header" style="position:relative;">
+      <input type="text" class="host-input" placeholder="Host URL" />
+      <button type="button" class="delete-host" title="Delete Host">X</button>
+    </div>
+    <div class="patterns-list"></div>
+    <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
+  `;
+  hostDiv.querySelector('.add-pattern').onclick = () => {
+    const row = document.createElement('div');
+    row.className = 'pattern-row';
+    row.innerHTML = `
+      <div class="input-label">Pattern:</div>
+      <input type="text" class="pattern-input" placeholder="Pattern" />
+      <div class="input-label">URL Template:</div>
+      <input type="text" class="url-input" placeholder="URL Template" />
+      <div class="input-label">Link Name:</div>
+      <input type="text" class="name-input" placeholder="Link Name" />
+      <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
+      <button type="button" class="delete-pattern">X</button>
+    `;
+    const nameInput = row.querySelector('.name-input');
+    const emojiBtn = row.querySelector('.emoji-picker-btn');
+    emojiBtn.onclick = () => {
+      window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
+    };
+    row.querySelector('.delete-pattern').onclick = () => {
+      row.remove();
+    };
+    hostDiv.querySelector('.patterns-list').appendChild(row);
+  };
+  hostDiv.querySelector('.delete-host').onclick = () => {
+    hostDiv.remove();
+  };
+  hostContainers.appendChild(hostDiv);
+}
 
-// On page load, read from storage and populate table (array of {key, value})
+document.getElementById('addHost').onclick = addHost;
+
+// On page load, read from storage and populate grouped UI
 window.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get('regexMap', (data) => {
     let arr = Array.isArray(data.regexMap) ? data.regexMap : [];
-    // Sort by key, then by value
-    arr = arr.slice().sort((a, b) => {
-      if (a.key === b.key) {
-        return (a.value || '').localeCompare(b.value || '');
-      }
-      return (a.key || '').localeCompare(b.key || '');
-    });
-    // Remove all rows first
-    while (table.rows.length > 0) table.deleteRow(0);
-    if (arr.length === 0) {
-      addRow();
-    } else {
-      for (const entry of arr) {
-        addRow(entry.host || '', entry.key, entry.value, entry.name || '');
-      }
-    }
+    renderHosts(arr);
   });
 });
 
-
-// Save button: collect table data and store as array of {key, value} in chrome.storage
+// Save button: collect grouped UI data and store as flat array
 document.getElementById('save').onclick = () => {
   const arr = [];
-  for (const row of table.rows) {
-    const cell = row.cells[0];
-    const host = cell.querySelector('input.monospace-input[placeholder="Host URL"]')?.value.trim() || '';
-    const key = cell.querySelector('input.monospace-input[placeholder="Pattern"]')?.value.trim() || '';
-    const value = cell.querySelector('input.monospace-input[placeholder="URL template"]')?.value.trim() || '';
-    const name = cell.querySelector('input.name-input')?.value.trim() || '';
-    if (key) {
-      // Validate key as regex with /pattern/flags format
-      const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
-      const match = key.match(regexFormat);
-      if (!match) {
-        alert(`Invalid regex (must be in /pattern/flags format): ${key}`);
-        return;
+  document.querySelectorAll('.host-container').forEach(hostDiv => {
+    const host = hostDiv.querySelector('.host-input')?.value.trim() || '';
+    hostDiv.querySelectorAll('.pattern-row').forEach(row => {
+      const key = row.querySelector('.pattern-input')?.value.trim() || '';
+      const value = row.querySelector('.url-input')?.value.trim() || '';
+      const name = row.querySelector('.name-input')?.value.trim() || '';
+      if (key) {
+        // Validate key as regex with /pattern/flags format
+        const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
+        const match = key.match(regexFormat);
+        if (!match) {
+          alert(`Invalid regex (must be in /pattern/flags format): ${key}`);
+          return;
+        }
+        try {
+          new RegExp(match[1], match[2]);
+        } catch (e) {
+          alert(`Invalid regex: ${key}`);
+          return;
+        }
+        arr.push({ host, key, value, name });
       }
-      try {
-        new RegExp(match[1], match[2]);
-      } catch (e) {
-        alert(`Invalid regex: ${key}`);
-        return;
-      }
-      arr.push({ host, key, value, name });
-    }
-  }
+    });
+  });
   chrome.storage.sync.set({ regexMap: arr }, () => {
     showMessage('Saved!');
   });
