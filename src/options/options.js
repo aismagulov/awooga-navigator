@@ -186,6 +186,38 @@ document.getElementById('import').onclick = () => {
 };
 
 document.getElementById('importFile').addEventListener('change', function (e) {
+  // Minimal RFC-compliant CSV line parser
+  function parseCSVLine(line) {
+    const result = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (inQuotes) {
+        if (char === '"') {
+          if (line[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          field += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          result.push(field);
+          field = '';
+        } else {
+          field += char;
+        }
+      }
+    }
+    result.push(field);
+    return result;
+  }
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -194,26 +226,25 @@ document.getElementById('importFile').addEventListener('change', function (e) {
     const lines = text.split(/\r?\n/).filter(Boolean);
     // Validate columns in header
     if (lines.length > 0) {
-      const headerCols = lines[0].split(',');
-      if (headerCols.length !== 2) {
+      const headerCols = parseCSVLine(lines[0]);
+      if (!headerCols || headerCols.length !== 4) {
         alert('Invalid CSV - incorrect number of columns');
         return;
       }
     }
     const importedArr = [];
     for (let i = 1; i < lines.length; i++) { // skip header
-      // Count columns by splitting on commas not inside quotes
-      const cols = lines[i].match(/("[^"]*"|[^,]+)/g);
-      if (!cols || cols.length !== 2) {
+      const cols = parseCSVLine(lines[i]);
+      if (!cols || cols.length !== 4) {
         alert('Invalid CSV - incorrect number of columns');
         return;
       }
-      const match = lines[i].match(/^"((?:[^"]|"")*)","((?:[^"]|"")*)"$/);
-      if (match) {
-        const key = match[1].replace(/""/g, '"');
-        const value = match[2].replace(/""/g, '"');
-        importedArr.push({ key, value });
-      }
+      importedArr.push({
+        host: cols[0],
+        key: cols[1],
+        value: cols[2],
+        name: cols[3]
+      });
     }
     if (importedArr.length === 0) {
       showMessage('No valid entries found in CSV.');
@@ -232,9 +263,18 @@ document.getElementById('importFile').addEventListener('change', function (e) {
       () => {
         chrome.storage.sync.get('regexMap', (data) => {
           const current = Array.isArray(data.regexMap) ? data.regexMap : [];
-          const merged = current.concat(importedArr);
+          // Only add imported entries that are not duplicates (host, key, value)
+          const merged = current.slice();
+          importedArr.forEach(newEntry => {
+            const exists = current.some(existing =>
+              existing.host === newEntry.host &&
+              existing.key === newEntry.key &&
+              existing.value === newEntry.value
+            );
+            if (!exists) merged.push(newEntry);
+          });
           chrome.storage.sync.set({ regexMap: merged }, () => {
-            showMessage('Imported (appended)!');
+            showMessage('Imported (appended, no duplicates)!');
             window.location.reload();
           });
         });
@@ -248,12 +288,14 @@ document.getElementById('importFile').addEventListener('change', function (e) {
 document.getElementById('export').onclick = () => {
   chrome.storage.sync.get('regexMap', (data) => {
     const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
-    let csv = 'Pattern,Url\n';
+    let csv = 'Host,Pattern,Url,Name\n';
     for (const entry of arr) {
-      // Escape double quotes and commas in CSV
+      // Escape double quotes for CSV
+      const safeHost = '"' + (entry.host || '').replace(/"/g, '""') + '"';
       const safeKey = '"' + (entry.key || '').replace(/"/g, '""') + '"';
       const safeValue = '"' + (entry.value || '').replace(/"/g, '""') + '"';
-      csv += `${safeKey},${safeValue}\n`;
+      const safeName = '"' + (entry.name || '').replace(/"/g, '""') + '"';
+      csv += `${safeHost},${safeKey},${safeValue},${safeName}\n`;
     }
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
