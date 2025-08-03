@@ -1,3 +1,9 @@
+.duplicate-link-warning {
+  color: red;
+  font-size: 0.9em;
+  margin: 4px 0 0 0;
+}
+
 .host-container {
   max-width: 1200px;
 }

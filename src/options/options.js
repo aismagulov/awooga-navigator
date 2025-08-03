@@ -1,6 +1,4 @@
 // TODO
-// warning on identical links
-// validate input fields
 // fold unfold buttons
 
 const hostContainers = document.getElementById('hostContainers');
@@ -27,7 +25,14 @@ function renderHosts(regexMap) {
     hostDiv.className = 'host-container';
     hostDiv.innerHTML = getHostContainerHTML({ host });
     const patternsList = hostDiv.querySelector('.patterns-list');
+    // Warning element for duplicate link names
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'duplicate-link-warning';
+    warningDiv.style.display = 'none';
+    hostDiv.insertBefore(warningDiv, patternsList);
+
     // Render all patterns for this host
+    const patternRows = [];
     entries.forEach((entry, idx) => {
       console.log('Rendering entry:', entry);
       const escape = str => (str || '').replace(/"/g, '&quot;');
@@ -39,16 +44,58 @@ function renderHosts(regexMap) {
         patternNumber: idx + 1
       });
       patternsList.appendChild(row);
+      patternRows.push(row);
     });
+
     // Add pattern row
     hostDiv.querySelector('.add-pattern').onclick = () => {
-      const row = createPatternRow();
+      const row = createPatternRow({ patternNumber: patternsList.children.length + 1 });
       patternsList.appendChild(row);
+      patternRows.push(row);
+      updateDuplicateWarning();
+      // Add live update for new row
+      const nameInput = row.querySelector('.name-input');
+      nameInput.addEventListener('input', updateDuplicateWarning);
     };
     // Delete host
     hostDiv.querySelector('.delete-host').onclick = () => {
       hostDiv.remove();
     };
+
+    // Add live update for all pattern name inputs
+    patternRows.forEach((row) => {
+      const nameInput = row.querySelector('.name-input');
+      nameInput.addEventListener('input', updateDuplicateWarning);
+    });
+
+    // Function to update duplicate warning
+    function updateDuplicateWarning() {
+      // Get all link names and their pattern indices
+      const names = [];
+      patternsList.querySelectorAll('.pattern-row').forEach((row, idx) => {
+        const name = row.querySelector('.name-input')?.value.trim() || '';
+        names.push({ name, idx: idx + 1 });
+      });
+      // Find duplicates
+      const nameMap = {};
+      names.forEach(({ name, idx }) => {
+        if (!name) return;
+        if (!nameMap[name]) nameMap[name] = [];
+        nameMap[name].push(idx);
+      });
+      const dups = Object.values(nameMap).filter(arr => arr.length > 1);
+      if (dups.length > 0) {
+        const msg = dups.map(arr => `Pattern ${arr.join(' and ')} have identical link names`).join('. ');
+        warningDiv.textContent = msg;
+        warningDiv.style.display = '';
+      } else {
+        warningDiv.textContent = '';
+        warningDiv.style.display = 'none';
+      }
+    }
+    // Initial check
+    updateDuplicateWarning();
+
     hostContainers.appendChild(hostDiv);
   });
 }
