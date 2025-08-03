@@ -1,17 +1,4 @@
-// document.addEventListener('selectionchange', () => {
-//     const selectedText = window.getSelection().toString();
-//     const pageUrl = window.location.href;
-//     console.log('Selection changed:', {
-//         url: pageUrl,
-//         text: selectedText
-//     });
-//     // Send message to background script with selection info
-//     chrome.runtime.sendMessage({
-//         type: 'selectionChanged',
-//         url: pageUrl,
-//         text: selectedText
-//     });
-// });
+const INJECTED_ATTR = 'awooga-navigator-injected';
 
 function applyPattern(entry) {
     const pattern = entry.key;
@@ -39,7 +26,7 @@ function applyPattern(entry) {
         let result, lastIndex = 0, parent = node.parentNode;
         if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') continue;
         // Don't process if previous sibling is already an injected link for this pattern and urlTemplate
-        if (parent.previousSibling && parent.previousSibling.nodeType === 1 && parent.previousSibling.hasAttribute && parent.previousSibling.hasAttribute('data-awooga-injected')) {
+        if (parent.previousSibling && parent.previousSibling.nodeType === 1 && parent.previousSibling.hasAttribute && parent.previousSibling.hasAttribute(INJECTED_ATTR)) {
             continue;
         }
         let frag = document.createDocumentFragment();
@@ -66,7 +53,7 @@ function applyPattern(entry) {
                 }
             }
             let alreadyInjected = false;
-            if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute('data-awooga-injected')) {
+            if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute(INJECTED_ATTR)) {
                 if (parent.nextSibling.href === url) {
                     alreadyInjected = true;
                 }
@@ -74,8 +61,8 @@ function applyPattern(entry) {
             if (!alreadyInjected) {
                 const a = document.createElement('a');
                 a.href = url;
-                a.textContent = (entry.name || '🔗') + '↗️';
-                a.setAttribute('data-awooga-injected', '1');
+                a.textContent = entry.name || '🔗';
+                a.setAttribute(INJECTED_ATTR, '1');
                 a.target = '_blank';
                 a.style.marginLeft = '2px';
                 frag.appendChild(a);

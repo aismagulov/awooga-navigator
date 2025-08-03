@@ -1,81 +1,48 @@
+// TODO
+// warning on identical links
+// validate input fields
+// fold unfold buttons
+
 const hostContainers = document.getElementById('hostContainers');
+
+window.addEventListener('DOMContentLoaded', () => {
+  chrome.storage.sync.get('regexMap', (data) => {
+    let arr = Array.isArray(data.regexMap) ? data.regexMap : [];
+    renderHosts(arr);
+  });
+});
+
 
 function renderHosts(regexMap) {
   hostContainers.innerHTML = '';
-  // Group by host, but ensure all entries are rendered
   const grouped = {};
   regexMap.forEach(entry => {
     const host = entry.host || '';
     if (!grouped[host]) grouped[host] = [];
     grouped[host].push(entry);
   });
+
   Object.entries(grouped).forEach(([host, entries]) => {
     const hostDiv = document.createElement('div');
     hostDiv.className = 'host-container';
-    hostDiv.innerHTML = `
-      <div class="host-header" style="position:relative;">
-        <span class="input-label">Host Name:</span>
-        <input type="text" class="host-input monospace-input" value="${host}" placeholder="Host URL" />
-        <button type="button" class="delete-host" title="Delete Host">X</button>
-      </div>
-      <div class="patterns-list"></div>
-      <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
-    `;
+    hostDiv.innerHTML = getHostContainerHTML({ host });
     const patternsList = hostDiv.querySelector('.patterns-list');
     // Render all patterns for this host
-    entries.forEach(entry => {
+    entries.forEach((entry, idx) => {
       console.log('Rendering entry:', entry);
       const escape = str => (str || '').replace(/"/g, '&quot;');
-      const row = document.createElement('div');
-      row.className = 'pattern-row';
-      row.innerHTML = `
-        <div class="input-label">Pattern:</div>
-        <input type="text" class="monospace-input pattern-input" value="${escape(entry.key)}" placeholder="Pattern" />
-        <div class="input-label">URL Template:</div>
-        <input type="text" class="monospace-input url-input" value="${escape(entry.value)}" placeholder="URL Template" />
-        <div class="input-label">Link Name:</div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <input type="text" class="name-input" value="${escape(entry.name)}" placeholder="Link Name" />
-          <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
-        </div>
-        <button type="button" class="delete-pattern" title="Delete Pattern">X</button>
-      `;
-      // Emoji picker for name
-      const nameInput = row.querySelector('.name-input');
-      const emojiBtn = row.querySelector('.emoji-picker-btn');
-      emojiBtn.onclick = () => {
-        window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
-      };
-      // Delete pattern row
-      row.querySelector('.delete-pattern').onclick = () => {
-        row.remove();
-      };
+      const row = createPatternRow({
+        key: entry.key,
+        value: entry.value,
+        name: entry.name,
+        escape,
+        patternNumber: idx + 1
+      });
       patternsList.appendChild(row);
     });
     // Add pattern row
     hostDiv.querySelector('.add-pattern').onclick = () => {
-      const row = document.createElement('div');
-      row.className = 'pattern-row';
-      row.innerHTML = `
-        <div class="input-label">Pattern:</div>
-        <input type="text" class="pattern-input" placeholder="Pattern" />
-        <div class="input-label">URL Template:</div>
-        <input type="text" class="url-input" placeholder="URL Template" />
-        <div class="input-label">Link Name:</div>
-        <div style="display:flex;align-items:center;gap:4px;">
-          <input type="text" class="name-input" placeholder="Link Name" />
-          <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
-        </div>
-        <button type="button" class="delete-pattern">X</button>
-      `;
-      const nameInput = row.querySelector('.name-input');
-      const emojiBtn = row.querySelector('.emoji-picker-btn');
-      emojiBtn.onclick = () => {
-        window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
-      };
-      row.querySelector('.delete-pattern').onclick = () => {
-        row.remove();
-      };
+      const row = createPatternRow();
       patternsList.appendChild(row);
     };
     // Delete host
@@ -86,39 +53,13 @@ function renderHosts(regexMap) {
   });
 }
 
-// Add Host button
-function addHost() {
+document.getElementById('addHost').onclick = () => {
   const hostDiv = document.createElement('div');
   hostDiv.className = 'host-container';
-  hostDiv.innerHTML = `
-    <div class="host-header" style="position:relative;">
-      <input type="text" class="host-input" placeholder="Host URL" />
-      <button type="button" class="delete-host" title="Delete Host">X</button>
-    </div>
-    <div class="patterns-list"></div>
-    <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
-  `;
+  hostDiv.innerHTML = getHostContainerHTML();
+
   hostDiv.querySelector('.add-pattern').onclick = () => {
-    const row = document.createElement('div');
-    row.className = 'pattern-row';
-    row.innerHTML = `
-      <div class="input-label">Pattern:</div>
-      <input type="text" class="pattern-input" placeholder="Pattern" />
-      <div class="input-label">URL Template:</div>
-      <input type="text" class="url-input" placeholder="URL Template" />
-      <div class="input-label">Link Name:</div>
-      <input type="text" class="name-input" placeholder="Link Name" />
-      <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
-      <button type="button" class="delete-pattern">X</button>
-    `;
-    const nameInput = row.querySelector('.name-input');
-    const emojiBtn = row.querySelector('.emoji-picker-btn');
-    emojiBtn.onclick = () => {
-      window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
-    };
-    row.querySelector('.delete-pattern').onclick = () => {
-      row.remove();
-    };
+    const row = createPatternRow();
     hostDiv.querySelector('.patterns-list').appendChild(row);
   };
   hostDiv.querySelector('.delete-host').onclick = () => {
@@ -127,41 +68,28 @@ function addHost() {
   hostContainers.appendChild(hostDiv);
 }
 
-document.getElementById('addHost').onclick = addHost;
 
-// On page load, read from storage and populate grouped UI
-window.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.sync.get('regexMap', (data) => {
-    let arr = Array.isArray(data.regexMap) ? data.regexMap : [];
-    renderHosts(arr);
-  });
-});
-
-// Save button: collect grouped UI data and store as flat array
 document.getElementById('save').onclick = () => {
   const arr = [];
   document.querySelectorAll('.host-container').forEach(hostDiv => {
+    console.log('Saving host container:', hostDiv);
     const host = hostDiv.querySelector('.host-input')?.value.trim() || '';
+    if (!isValidRegex(host)) {
+      alert(`The Host URL must be a valid regex: ${host}`);
+      return;
+    }
     hostDiv.querySelectorAll('.pattern-row').forEach(row => {
       const key = row.querySelector('.pattern-input')?.value.trim() || '';
       const value = row.querySelector('.url-input')?.value.trim() || '';
       const name = row.querySelector('.name-input')?.value.trim() || '';
       if (key) {
-        // Validate key as regex with /pattern/flags format
-        const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
-        const match = key.match(regexFormat);
-        if (!match) {
+        if (!isValidRegex(key)) {
           alert(`Invalid regex (must be in /pattern/flags format): ${key}`);
-          return;
-        }
-        try {
-          new RegExp(match[1], match[2]);
-        } catch (e) {
-          alert(`Invalid regex: ${key}`);
           return;
         }
         arr.push({ host, key, value, name });
       }
+
     });
   });
   chrome.storage.sync.set({ regexMap: arr }, () => {
@@ -177,8 +105,6 @@ function showMessage(msg) {
   }, 1500);
 };
 
-// Placeholder event handler for Import
-
 // Import button: open file dialog and handle CSV import
 document.getElementById('import').onclick = () => {
   document.getElementById('importFile').value = '';
@@ -186,40 +112,9 @@ document.getElementById('import').onclick = () => {
 };
 
 document.getElementById('importFile').addEventListener('change', function (e) {
-  // Minimal RFC-compliant CSV line parser
-  function parseCSVLine(line) {
-    const result = [];
-    let field = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (inQuotes) {
-        if (char === '"') {
-          if (line[i + 1] === '"') {
-            field += '"';
-            i++;
-          } else {
-            inQuotes = false;
-          }
-        } else {
-          field += char;
-        }
-      } else {
-        if (char === '"') {
-          inQuotes = true;
-        } else if (char === ',') {
-          result.push(field);
-          field = '';
-        } else {
-          field += char;
-        }
-      }
-    }
-    result.push(field);
-    return result;
-  }
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = function (event) {
     const text = event.target.result;
@@ -284,7 +179,6 @@ document.getElementById('importFile').addEventListener('change', function (e) {
   reader.readAsText(file);
 });
 
-// Export button: download the array as CSV
 document.getElementById('export').onclick = () => {
   chrome.storage.sync.get('regexMap', (data) => {
     const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
@@ -310,3 +204,98 @@ document.getElementById('export').onclick = () => {
     }, 0);
   });
 };
+
+function getHostContainerHTML(opts = {}) {
+  const host = opts.host !== undefined ? opts.host : '';
+  return `
+    <div class="host-header">
+      <span class="host-label">Host Name</span>
+      <input type="text" class="host-input monospace-input" value="${host}" placeholder="Host URL" />
+      <button type="button" class="delete-host" title="Delete Host">X</button>
+    </div>
+    <div class="patterns-list"></div>
+    <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
+  `;
+}
+
+// Helper to create a pattern row (avoids duplication)
+function createPatternRow(opts = {}) {
+  const escape = opts.escape || (str => str || '');
+  const key = opts.key ? escape(opts.key) : '';
+  const value = opts.value ? escape(opts.value) : '';
+  const name = opts.name ? escape(opts.name) : '';
+  const row = document.createElement('div');
+  row.className = 'pattern-row';
+  const patternLabel = opts.patternNumber ? `Pattern ${opts.patternNumber}` : 'Pattern';
+  row.innerHTML = `
+    <div class="pattern-details-container">
+      <span class="input-label">${patternLabel}</span>
+      <input type="text" class="monospace-input pattern-input" value="${key}" placeholder="Pattern" />
+    </div>
+    <div class="link-details-container">
+      <span class="input-label">URL Template</span>
+      <input type="text" class="monospace-input url-input" value="${value}" placeholder="URL Template" />
+      <div class="input-label">Link Name</div>
+      <div class="link-name-container">
+        <input type="text" class="name-input" value="${name}" placeholder="Link Name" />
+        <button type="button" class="emoji-picker-btn" title="Pick emoji">😀</button>
+      </div>
+    </div>
+    <button type="button" class="delete-pattern" title="Delete Pattern">X</button>
+  `;
+  // Emoji picker for name
+  const nameInput = row.querySelector('.name-input');
+  const emojiBtn = row.querySelector('.emoji-picker-btn');
+  emojiBtn.onclick = () => {
+    window.EmojiPicker.show({ anchor: emojiBtn, input: nameInput });
+  };
+  // Delete pattern row
+  row.querySelector('.delete-pattern').onclick = () => {
+    row.remove();
+  };
+  return row;
+}
+
+function isValidRegex(str) {
+  const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
+  const match = str.match(regexFormat);
+  if (!match) return false;
+  try {
+    new RegExp(match[1], match[2]);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (line[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(field);
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+  }
+  result.push(field);
+  return result;
+}
