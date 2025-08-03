@@ -1,3 +1,22 @@
+p {
+  margin: 0;
+  padding: 0;
+}
+
+input {
+  border: none;
+  outline: none;
+  background-color: #eee;
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.info-text {
+  font-size: 1.5em;
+  color: #666;
+  margin-top: 8px;
+}
+
 .duplicate-link-warning {
   color: red;
   font-size: 0.9em;
@@ -6,6 +25,12 @@
 
 .host-container {
   max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 1px solid #ccc;
+  position: relative;
+  margin-bottom: 8px;
 }
 
 .host-header {
@@ -31,135 +56,125 @@
   min-width: 0;
   padding: 4px 12px;
   font-size: 1em;
-  margin: 8px;
+  margin: 0 8px 8px;
   cursor: pointer;
   align-self: flex-start;
 }
 
-.host-container {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    border: 1px solid #ccc;
-    position: relative;
-    margin-bottom: 8px;
-}
-
 .pattern-row {
-    display: flex;
-    flex-direction: column;
-    margin: 12px 64px 12px 12px;
-    border-bottom: 1px solid #ddd;
-    position: relative;
-    padding: 8px 16px 16px 0px;
-
+  display: flex;
+  flex-direction: column;
+  margin: 12px 64px 12px 12px;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+  padding: 8px 16px 16px 0px;
 }
 
 .delete-pattern {
-    position: absolute;
-    top: 8px;
-    right: -32px;
-    background: #888;
-    color: #fff;
-    border: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
+  position: absolute;
+  top: 8px;
+  right: -32px;
+  background: #888;
+  color: #fff;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
 }
 
 .link-name-container {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .link-details-container {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
 }
 
 .monospace-input {
-    font-family: "Fira Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace;
+  font-family: "Fira Mono", "Consolas", "Menlo", "Monaco", "Courier New", monospace;
 }
 
 .pattern-input {
-    width: calc(100% - 100px);
+  width: calc(100% - 100px);
 }
 
 .input-label {
-    font-weight: bold;
-    font-size: medium;
-    margin-right: 4px;
+  font-weight: bold;
+  font-size: medium;
+  margin-right: 4px;
 }
 
 .name-input {
-    width: 100px;
+  width: 100px;
 }
 
 .url-input {
-    width: 600px;
-    margin-right: 16px;
+  width: 600px;
+  margin-right: 16px;
 }
 
 .name-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .emoji-picker-popup {
-    display: none;
-    position: absolute;
-    z-index: 10;
-    background: #fff;
+  display: none;
+  position: absolute;
+  z-index: 10;
+  background: #fff;
 }
 
 button {
-    margin: 0;
+  margin: 0;
 }
 
 .top-right-btn {
-    position: absolute;
-    top: 4px;
-    right: 0px;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    color: #fff;
-    border: none;
+  position: absolute;
+  top: 4px;
+  right: 0px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #fff;
+  border: none;
 }
 
 .delete-host {
-    background: #d32f2f;
-    right: 4px;
+  background: #d32f2f;
+  right: 4px;
 }
 
 .fold-btn {
-    right: 32px;
-    background: #1976d2;
+  right: 32px;
+  background: #1976d2;
 }
 
 #message {
-    height: 1.5em;
-    margin-top: 8px;
+  height: 1.5em;
+  margin-top: 8px;
 }

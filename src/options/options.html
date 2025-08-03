@@ -9,10 +9,26 @@
   <script src="emoji-picker.js"></script>
 </head>
 <body>
-  <h2>Regex Map</h2>
+  <h1>Awooga Navigator</h1>
+  <div class="info-text">
+    <p>For each <strong>host</strong>, you can define multiple regex <strong>patterns</strong>, each pattern must contain a group.</p>
+    <p>When a group is matched, the value will be extracted and used in the <strong>URL Template</strong>.</p>
+    <p>The extension will append a link to the resulting URL in the page with corresponding <strong>Link Name</strong>.</p>
+  </div>
+  <div class="info-text">
+    <strong>Note</strong> 
+    <ul>
+      <li>Host URLs and patterns must be valid regexes.</li>
+      <li>Patterns must contain at least one capturing group.</li>
+      <li>URLs can contain an asterisk that will be replaced with the captured group value.</li>
+      <li>If there is no asterisk, the captured value is appended to the end of the URL.</li>
+      <li><a href="https://regex101.com/" target="_blank">Regex101 tool</a>.</li>
+    </ul> 
+  </div>
+
   <div id="hostContainers"></div>
   <div>
-    <button id="addHost">Add Host URL</button>
+    <button id="addHost">Add Host</button>
     <button id="save">Save</button>
     <button id="import">Import</button>
     <input type="file" id="importFile" accept=".csv" style="display:none" />
