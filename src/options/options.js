@@ -1,6 +1,7 @@
 // TODO
 // fold unfold buttons
-
+const FOLD = "▼";
+const UNFOLD = "▶";
 const hostContainers = document.getElementById('hostContainers');
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -24,12 +25,38 @@ function renderHosts(regexMap) {
     const hostDiv = document.createElement('div');
     hostDiv.className = 'host-container';
     hostDiv.innerHTML = getHostContainerHTML({ host });
+    initHostContainer(hostDiv, entries);
+
+    hostContainers.appendChild(hostDiv);
+  });
+}
+
+document.getElementById('addHost').onclick = () => {
+  const hostDiv = document.createElement('div');
+  hostDiv.className = 'host-container';
+  hostDiv.innerHTML = getHostContainerHTML();
+  initHostContainer(hostDiv, []);
+  hostContainers.appendChild(hostDiv);
+}
+
+function initHostContainer(hostDiv, entries) {
+
     const patternsList = hostDiv.querySelector('.patterns-list');
-    // Warning element for duplicate link names
-    const warningDiv = document.createElement('div');
-    warningDiv.className = 'duplicate-link-warning';
-    warningDiv.style.display = 'none';
-    hostDiv.insertBefore(warningDiv, patternsList);
+    const foldBtn = hostDiv.querySelector('.fold-btn');
+    const warningDiv = hostDiv.querySelector('.duplicate-link-warning');
+console.log("foldBtn", hostDiv.querySelector('.fold-btn'));
+    // Elements to hide/show when folding
+    const foldTargets = [patternsList, warningDiv, hostDiv.querySelector('.add-pattern.pattern-btn')];
+    foldBtn.onclick = () => {
+      const folded = foldBtn.textContent === UNFOLD;
+      if (folded) {
+        foldTargets.forEach(el => { if (el) el.style.display = ''; });
+        foldBtn.textContent = FOLD;
+      } else {
+        foldTargets.forEach(el => { if (el) el.style.display = 'none'; });
+        foldBtn.textContent = UNFOLD;
+      }
+    };
 
     // Render all patterns for this host
     const patternRows = [];
@@ -93,26 +120,8 @@ function renderHosts(regexMap) {
         warningDiv.style.display = 'none';
       }
     }
-    // Initial check
+
     updateDuplicateWarning();
-
-    hostContainers.appendChild(hostDiv);
-  });
-}
-
-document.getElementById('addHost').onclick = () => {
-  const hostDiv = document.createElement('div');
-  hostDiv.className = 'host-container';
-  hostDiv.innerHTML = getHostContainerHTML();
-
-  hostDiv.querySelector('.add-pattern').onclick = () => {
-    const row = createPatternRow();
-    hostDiv.querySelector('.patterns-list').appendChild(row);
-  };
-  hostDiv.querySelector('.delete-host').onclick = () => {
-    hostDiv.remove();
-  };
-  hostContainers.appendChild(hostDiv);
 }
 
 
@@ -256,9 +265,11 @@ function getHostContainerHTML(opts = {}) {
   const host = opts.host !== undefined ? opts.host : '';
   return `
     <div class="host-header">
-      <span class="host-label">Host Name</span>
+      <span class="host-label">Host</span>
       <input type="text" class="host-input monospace-input" value="${host}" placeholder="Host URL" />
-      <button type="button" class="delete-host" title="Delete Host">X</button>
+      <div class="duplicate-link-warning" style="display: none;"></div>
+      <button type="button" class="top-right-btn delete-host" title="Delete Host">X</button>
+      <button type="button" class="top-right-btn fold-btn" title="Fold Host">▼</button>
     </div>
     <div class="patterns-list"></div>
     <button type="button" class="add-pattern pattern-btn">Add Pattern</button>
