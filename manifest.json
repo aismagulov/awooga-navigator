@@ -2,11 +2,10 @@
   "manifest_version": 3,
   "name": "Awooga Navigator",
   "version": "1.0",
-  "description": "A simple Chrome extension example.",
+  "description": "An extension that detects text patterns on web pages and adds navigation links next to them.",
   "permissions": [
     "activeTab",
-    "storage",
-    "contextMenus"
+    "storage"
   ],
   "background": {
     "service_worker": "src/background.js"
