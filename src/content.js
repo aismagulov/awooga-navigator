@@ -1,4 +1,4 @@
-const INJECTED_ATTR = 'awooga-navigator-injected';
+const INJECTED_CLASS = 'awooga-navigator-injected';
 
 function applyPattern(entry) {
     const pattern = entry.key;
@@ -26,7 +26,7 @@ function applyPattern(entry) {
         const parent = node.parentNode;
         if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') continue;
         // Skip nodes that are already inside injected links
-        if (parent.closest && parent.closest(`[${INJECTED_ATTR}]`)) continue;
+        if (parent.closest && parent.closest(`.${INJECTED_CLASS}`)) continue;
         textNodes.push(node);
     }
 
@@ -71,8 +71,8 @@ function applyPattern(entry) {
             // Create and append link
             const a = document.createElement('a');
             a.href = url;
-            a.textContent = entry.name || '🔗';
-            a.setAttribute(INJECTED_ATTR, '1');
+            a.textContent = "[" + (entry.name || '🔗') + "]";
+            a.classList.add(INJECTED_CLASS);
             a.target = '_blank';
             a.style.marginLeft = '2px';
             frag.appendChild(a);
@@ -128,7 +128,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true });
     } else if (request.action === 'cleanPatterns') {
         // Remove all injected links
-        const injectedElements = document.querySelectorAll(`[${INJECTED_ATTR}]`);
+        const injectedElements = document.querySelectorAll(`.${INJECTED_CLASS}`);
         injectedElements.forEach(element => element.remove());
         sendResponse({ success: true });
     }
