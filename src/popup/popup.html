@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Chrome Extension Popup</title>
-    
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div id="popup-container">
-        <div>
-            <button id="run">Run</button>
-            <button id="clean">Clean</button>
+        <div class="button-row">
+            <button id="run" class="action-button">Run</button>
+            <button id="clean" class="action-button">Clean</button>
+        </div>
+        <div class="button-row">
+            <button id="options" class="secondary-button">Options</button>
         </div>
     </div>
     <script src="popup.js"></script>

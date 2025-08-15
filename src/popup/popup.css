@@ -1,0 +1,100 @@
+/* Popup container styling */
+#popup-container {
+    width: 200px;
+    padding: 16px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+}
+
+/* Button rows */
+.button-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.button-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Action buttons styling */
+.action-button {
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.action-button:active {
+    background-color: #e5e7eb;
+    transform: translateY(1px);
+}
+
+/* Secondary button styling */
+.secondary-button {
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.secondary-button:active {
+    background-color: #e5e7eb;
+    transform: translateY(1px);
+}
+
+/* Run button specific styling */
+#run {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+}
+
+#run:hover {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+}
+
+#run:active {
+    background-color: #1d4ed8;
+}
+
+/* Clean button specific styling */
+#clean {
+    background-color: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+#clean:hover {
+    background-color: #dc2626;
+    border-color: #b91c1c;
+}
+
+#clean:active {
+    background-color: #b91c1c;
+}

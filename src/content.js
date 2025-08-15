@@ -13,7 +13,8 @@ function applyPattern(entry) {
         re = new RegExp(match[1], match[2]);
     } catch (e) { return; }
 
-    // Walk all text nodes in the body
+    // Collect fresh text nodes for this pattern
+    const textNodes = [];
     const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -22,16 +23,29 @@ function applyPattern(entry) {
     );
     let node;
     while ((node = walker.nextNode())) {
-        let text = node.nodeValue;
-        let result, lastIndex = 0, parent = node.parentNode;
+        const parent = node.parentNode;
         if (!parent || parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') continue;
-        // Don't process if previous sibling is already an injected link for this pattern and urlTemplate
-        if (parent.previousSibling && parent.previousSibling.nodeType === 1 && parent.previousSibling.hasAttribute && parent.previousSibling.hasAttribute(INJECTED_ATTR)) {
-            continue;
-        }
+        // Skip nodes that are already inside injected links
+        if (parent.closest && parent.closest(`[${INJECTED_ATTR}]`)) continue;
+        textNodes.push(node);
+    }
+
+    // Process collected text nodes (working backwards to avoid index issues)
+    for (let i = textNodes.length - 1; i >= 0; i--) {
+        const node = textNodes[i];
+        console.log('Processing text node:', node);
+        
+        // Re-check if node is still in DOM
+        if (!node.parentNode || !document.body.contains(node)) continue;
+        
+        const text = node.nodeValue;
+        const parent = node.parentNode;
+        
+        let result, lastIndex = 0;
         let frag = document.createDocumentFragment();
         re.lastIndex = 0;
         let found = false;
+        
         while ((result = re.exec(text)) !== null) {
             found = true;
             // Text before match
@@ -41,7 +55,8 @@ function applyPattern(entry) {
             // Matched text
             const matchedText = result[0];
             frag.appendChild(document.createTextNode(matchedText));
-            // Check if next sibling is already an injected link with the same href
+            
+            // Create URL from template
             let url = urlTemplate;
             if (result[1] !== undefined) {
                 if (url.includes('*')) {
@@ -52,24 +67,20 @@ function applyPattern(entry) {
                     url += result[1];
                 }
             }
-            let alreadyInjected = false;
-            if (parent.nextSibling && parent.nextSibling.nodeType === 1 && parent.nextSibling.hasAttribute && parent.nextSibling.hasAttribute(INJECTED_ATTR)) {
-                if (parent.nextSibling.href === url) {
-                    alreadyInjected = true;
-                }
-            }
-            if (!alreadyInjected) {
-                const a = document.createElement('a');
-                a.href = url;
-                a.textContent = entry.name || '🔗';
-                a.setAttribute(INJECTED_ATTR, '1');
-                a.target = '_blank';
-                a.style.marginLeft = '2px';
-                frag.appendChild(a);
-            }
+            
+            // Create and append link
+            const a = document.createElement('a');
+            a.href = url;
+            a.textContent = entry.name || '🔗';
+            a.setAttribute(INJECTED_ATTR, '1');
+            a.target = '_blank';
+            a.style.marginLeft = '2px';
+            frag.appendChild(a);
+            
             lastIndex = result.index + matchedText.length;
             if (!re.global) break;
         }
+        
         if (found) {
             // Remaining text after last match
             if (lastIndex < text.length) {
@@ -80,28 +91,48 @@ function applyPattern(entry) {
     }
 }
 
-chrome.storage.sync.get('regexMap', (data) => {
-    const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
-    const pageUrl = window.location.href;
-    arr.forEach(entry => {
-        let proceed = false;
-        if (!entry.host) {
-            proceed = true;
-        } else {
-            // Validate host as regex in /pattern/flags format
-            const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
-            const match = entry.host.match(regexFormat);
-            if (match) {
-                try {
-                    const re = new RegExp(match[1], match[2]);
-                    if (re.test(pageUrl)) {
-                        proceed = true;
-                    }
-                } catch (e) { /* invalid regex, do nothing */ }
+function runPatternMatching() {
+    chrome.storage.sync.get('regexMap', (data) => {
+        const arr = Array.isArray(data.regexMap) ? data.regexMap : [];
+        const pageUrl = window.location.href;
+        
+        // Apply each pattern, collecting fresh text nodes for each one
+        arr.forEach(entry => {
+            let proceed = false;
+            if (!entry.host) {
+                proceed = true;
+            } else {
+                // Validate host as regex in /pattern/flags format
+                const regexFormat = /^\/(.*)\/([gimsuy]*)$/;
+                const match = entry.host.match(regexFormat);
+                if (match) {
+                    try {
+                        const re = new RegExp(match[1], match[2]);
+                        if (re.test(pageUrl)) {
+                            proceed = true;
+                        }
+                    } catch (e) { /* invalid regex, do nothing */ }
+                }
             }
-        }
-        if (proceed) {
-            applyPattern(entry);
-        }
+            if (proceed) {
+                applyPattern(entry);
+            }
+        });
     });
+}
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'runPatterns') {
+        runPatternMatching();
+        sendResponse({ success: true });
+    } else if (request.action === 'cleanPatterns') {
+        // Remove all injected links
+        const injectedElements = document.querySelectorAll(`[${INJECTED_ATTR}]`);
+        injectedElements.forEach(element => element.remove());
+        sendResponse({ success: true });
+    }
 });
+
+// Run automatically on page load
+runPatternMatching();
